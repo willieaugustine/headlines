@@ -9,7 +9,22 @@ import urllib
 app = Flask (__name__)
 RSS_FEEDS = {'bbc': 'http://feeds.bbci.co.uk/news/rss.xml','cnn':'http://rss.cnn.com/rss/edition.rss','fox': 'http://feeds.foxnews.com/foxnews/latest','ioL': 'http://www.ioL.co.za/cmlink/1.640'}
 @app.route("/", methods=['GET', 'POST'])
-@app.route("/<publication>")
+# ...
+DEFAULTS = {'publication':'bbc','city':'London, UK'}
+@app.route("/")
+def home():
+    # get customized headlines, based on user input or default publication = request.args.get('publication')
+if not publication:
+    publication = DEFAULTS['publication']
+articles = get_news(publication)
+    #get customized weather based on user input or default
+city = request.args.get('city')
+if not city:
+    city = DEFAULTS['city']
+weather= get_weather(city)
+   return render_template("home.html", articles = articles,weather = weather)
+
+
 def get_news():
     query = request.form.get("publication")
     if not query or query.lower() not in RSS_FEEDS:
