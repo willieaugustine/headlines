@@ -1,0 +1,52 @@
+body {
+	background: #fafafa;
+}
+nav {
+	background-color: #303030;
+}
+.row {
+	margin: 5% 2%;
+}
+p {
+	color: #333333;
+}
+hr {
+	margin-bottom: 2%;
+}
+
+.headlines h1 {
+	text-align: center;
+	margin: 10% auto;
+}
+
+.tiles {
+    display: inline-block;
+}
+
+.titles {
+    font-size: 1.5em;
+}
+
+/*City*/
+
+.city {
+	margin-top: 2%;
+}
+
+/*weather*/
+
+.weather {
+	text-align: center;
+	padding-left: 5%;
+}
+.weather h2 {
+	font-size: 1.5em;
+	font-weight: bold;
+}
+.weather p{
+	font-size: 1em;
+}
+.weather span {
+	font-size: 1.3em;
+	margin-right: 2%;
+}
