@@ -16,23 +16,13 @@ RSS_FEEDS = {'bbc': 'http://feeds.bbci.co.uk/news/rss.xml','cnn':'http://rss.cnn
 # ...
 DEFAULTS = {'publication':'bbc','city':'London, UK','currency_from':'GBP','currency_to':'USD'}
 
-
-@app.route("/", methods=['GET', 'POST'])
+@app.route('/')
 def home():
-
-    # get customized headlines, based on user input or default publication = request.args.get('publication')
-    publication = request.args.get("publication")
-    if not publication:
-        publication = request.cookies.get("publication")
-    if not publication:
-        publication = DEFAULTS["publication"]
-
+    publication = get_value_with_fallback('publication')
     articles = get_news(publication)
-    #get customized weather based on user input or default
-    city = request.args.get('city')
-    if not city:
-        city = DEFAULTS['city']
-    weather= get_weather(city)
+    city = get_value_with_fallback('city')
+    weather = get_weather(city)
+
     for i in range(len(articles)):
         a = articles[i].get('media_content') or articles[i].get('media_thumbnail')
         if a is None:
@@ -40,22 +30,14 @@ def home():
         else:
             articles[i]['image'] = a[0]['url']
 
-    #get customized currency based on user input or default
-    currency_from = DEFAULTS['currency_from']
-    currency_to = request.args.get("currency_to")
-    if not currency_to:
-        currency_to = DEFAULTS['currency_to']
-
-    rate, currencies = get_rate(currency_from, currency_to)
-    response = make_response(render_template("home.html", articles = articles, weather = weather, currency_from = currency_from, currency_to = currency_to, rate = rate, currencies= sorted(currencies)))
+    response = make_response(render_template('home.html', articles=articles, weather=weather))
     expires = datetime.datetime.now() + datetime.timedelta(days=365)
-    response.set_cookie("publication", publication, expires=expires)
-    response.set_cookie("city", city, expires=expires)
-    response.set_cookie("currency_from",
-        currency_from, expires= expires)
-    response.set_cookie("currency_to", currency_to, expires=expires)
+    response.set_cookie('publication', publication, expires=expires)
+    response.set_cookie('city', city, expires=expires)
     return response
 
+
+# reads the xml data provided by the rss feeds and converts it to json
 def get_news(query):
     if not query or query.lower() not in RSS_FEEDS:
         publication = DEFAULTS["publication"]
@@ -65,28 +47,35 @@ def get_news(query):
     return feed['entries']
 
 
+# retreives data from weather api
 def get_weather(query):
+    # escapes special charachters in url
     query = urllib.quote(query)
     url = WEATHER_URL.format(query)
+    # opens the url provided and reads it
     data = urllib2.urlopen(url).read()
     parsed = json.loads(data)
     weather = None
-    if parsed.get("weather"):
-        weather = {"description":parsed["weather"][0]["description"],
-                   "temperature":parsed["main"]["temp"],"city":parsed["name"], 'country': parsed['sys']['country']}
+    if parsed.get('weather'):
+        weather = {
+            'description': parsed['weather'][0]['description'],
+            'temperature': parsed['main']['temp'],
+            'city': parsed['name'],
+            'country': parsed['sys']['country']
+        }
     return weather
 
 
-def get_rate(frm, to):
-    all_currency = urllib2.urlopen(CURRENCY_URL).read()
-    parsed = json.loads(all_currency).get('rates')
-    frm_rate = parsed.get(frm.upper())
-    to_rate = parsed.get(to.upper())
-    return (to_rate/frm_rate, parsed.keys())
+# provides a fallback for all requests made by user, if no request made fallbacks to DEFAULTS
+def get_value_with_fallback(key):
+    if request.args.get(key):
+        return request.args.get(key)
+    if request.cookies.get(key):
+        return request.cookies.get(key)
+    return DEFAULTS[key]
 
 x = feedparser.parse(RSS_FEEDS['bbc'])
 print x
 
-
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(debug=True)

@@ -1,14 +1,14 @@
 body {
-	background: #fafafa;
+	background: #ffebee;
 }
 nav {
-	background-color: #303030;
+	background-color: #78909c;
 }
 .row {
 	margin: 5% 2%;
 }
 p {
-	color: #333333;
+	color: #f44336;
 }
 hr {
 	margin-bottom: 2%;
@@ -16,7 +16,7 @@ hr {
 
 .headlines h1 {
 	text-align: center;
-	margin: 10% auto;
+	margin: 16% auto;
 }
 
 .tiles {
@@ -24,7 +24,7 @@ hr {
 }
 
 .titles {
-    font-size: 1.5em;
+    font-size: 1.8em;
 }
 
 /*City*/
