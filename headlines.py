@@ -5,6 +5,9 @@ from flask import request
 import json
 import urllib2
 import urllib
+import datetime
+from flask import make_response
+
 
 WEATHER_URL = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid=c01b8760dd45f3620b131ed32b24dfc3'
 CURRENCY_URL = 'https://openexchangerates.org//api/latest.json?app_id=10cb38788d5e4083bbb1ee0375f87786'
@@ -16,24 +19,36 @@ DEFAULTS = {'publication':'bbc','city':'London, UK','currency_from':'GBP','curre
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
+
     # get customized headlines, based on user input or default publication = request.args.get('publication')
-    publication = request.args.get('publication')
+    publication = request.args.get("publication")
     if not publication:
-        publication = DEFAULTS['publication']
+        publication = request.cookies.get("publication")
+    if not publication:
+        publication = DEFAULTS["publication"]
+
     articles = get_news(publication)
     #get customized weather based on user input or default
     city = request.args.get('city')
     if not city:
         city = DEFAULTS['city']
     weather= get_weather(city)
+
     #get customized currency based on user input or default
     currency_from = DEFAULTS['currency_from']
     currency_to = request.args.get("currency_to")
     if not currency_to:
         currency_to = DEFAULTS['currency_to']
-    rate = get_rate(currency_from, currency_to)
-    return render_template("home.html", articles = articles,weather = weather, currency_from = currency_from, currency_to = currency_to, rate = rate)
 
+    rate, currencies = get_rate(currency_from, currency_to)
+    response = make_response(render_template("home.html", articles = articles, weather = weather, currency_from = currency_from, currency_to = currency_to, rate = rate, currencies= sorted(currencies)))
+    expires = datetime.datetime.now() + datetime.timedelta(days=365)
+    response.set_cookie("publication", publication, expires=expires)
+    response.set_cookie("city", city, expires=expires)
+    response.set_cookie("currency_from",
+        currency_from, expires= expires)
+    response.set_cookie("currency_to", currency_to, expires=expires)
+    return response
 
 def get_news(query):
     if not query or query.lower() not in RSS_FEEDS:
@@ -61,7 +76,7 @@ def get_rate(frm, to):
     parsed = json.loads(all_currency).get('rates')
     frm_rate = parsed.get(frm.upper())
     to_rate = parsed.get(to.upper())
-    return to_rate/frm_rate
+    return (to_rate/frm_rate, parsed.keys())
 
 
 if __name__ == '__main__':
