@@ -33,6 +33,12 @@ def home():
     if not city:
         city = DEFAULTS['city']
     weather= get_weather(city)
+    for i in range(len(articles)):
+        a = articles[i].get('media_content') or articles[i].get('media_thumbnail')
+        if a is None:
+            continue
+        else:
+            articles[i]['image'] = a[0]['url']
 
     #get customized currency based on user input or default
     currency_from = DEFAULTS['currency_from']
@@ -77,6 +83,9 @@ def get_rate(frm, to):
     frm_rate = parsed.get(frm.upper())
     to_rate = parsed.get(to.upper())
     return (to_rate/frm_rate, parsed.keys())
+
+x = feedparser.parse(RSS_FEEDS['bbc'])
+print x
 
 
 if __name__ == '__main__':
